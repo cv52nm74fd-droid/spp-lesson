@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>СПП · Интерактивный 3D-урок</title>
+<meta name="description" content="Интерактивный 3D-урок: сложноподчинённые предложения, 9 класс">
+<meta name="theme-color" content="#02040a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta property="og:title" content="СПП · Интерактивный 3D-урок">
+<meta property="og:description" content="Сложноподчинённые предложения: 3D, стекло и анимации">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+<meta name="color-scheme" content="dark">
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{margin:0;padding:0;box-sizing:inherit;-webkit-tap-highlight-color:transparent}
+html{font-size:clamp(17px,1.45vw,28px);height:100%}
+body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;background:#02040a;color:#eef2ff;user-select:none;position:relative}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.blobs{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(100px);opacity:.5;mix-blend-mode:screen;animation:fl 24s ease-in-out infinite}
+.b1{width:40vw;height:40vw;background:#0ea5e9;top:-10vw;left:-10vw}
+.b2{width:35vw;height:35vw;background:#8b5cf6;bottom:-10vw;right:-8vw;animation-delay:-8s}
+.b3{width:28vw;height:28vw;background:#ec4899;top:40%;left:40%;animation-delay:-16s}
+@keyframes fl{33%{transform:translate(5vw,-4vw) scale(1.1)}66%{transform:translate(-4vw,5vw) scale(.9)}}
+.prog{position:fixed;top:0;left:0;right:0;height:5px;z-index:50;background:rgba(255,255,255,.06)}
+#bar{height:100%;width:9%;background:linear-gradient(90deg,#22d3ee,#8b5cf6,#ec4899);transition:width .7s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 20px #8b5cf6}
+.counter,.tools{position:fixed;z-index:50;background:rgba(2,6,23,.55);border:1px solid rgba(34,211,238,.35);backdrop-filter:blur(12px)}
+.counter{top:18px;left:18px;padding:.4rem 1rem;border-radius:50px;font-weight:800;letter-spacing:2px;color:#a5f3fc;font-size:.8rem}
+.tools{bottom:20px;left:18px;display:flex;gap:6px;padding:6px;border-radius:50px}
+.tools button{width:2.6rem;height:2.6rem;border-radius:50%;border:0;background:transparent;color:#67e8f9;font-size:1.1rem;cursor:pointer}
+.tools button:hover{background:rgba(34,211,238,.2)}
+.deck{position:relative;z-index:3;height:100%;width:100%}
+.slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:3.2rem 1.4rem 4.5rem;opacity:0;visibility:hidden;pointer-events:none;
+  transform:perspective(1600px) translateX(14vw) rotateY(-38deg) scale(.82);transition:opacity .7s,transform .9s cubic-bezier(.19,1,.22,1),visibility .7s}
+.slide.prev{transform:perspective(1600px) translateX(-14vw) rotateY(38deg) scale(.82)}
+.slide.active{opacity:1;visibility:visible;pointer-events:auto;transform:perspective(1600px) translateX(0) rotateY(0) scale(1)}
+.card{position:relative;width:min(1180px,100%);max-height:100%;overflow:auto;padding:2.2rem 3rem;border-radius:2rem;
+  background:linear-gradient(135deg,rgba(40,52,110,.45),rgba(2,6,23,.55));border:1px solid rgba(255,255,255,.2);
+  backdrop-filter:blur(28px) saturate(190%);-webkit-backdrop-filter:blur(28px) saturate(190%);
+  box-shadow:0 40px 100px rgba(0,0,0,.8),0 0 80px rgba(139,92,246,.18),inset 0 1px 1px rgba(255,255,255,.4),inset 0 0 50px rgba(255,255,255,.04);
+  transition:transform .18s ease-out;will-change:transform;scrollbar-width:thin}
+.card::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(600px circle at var(--mx,50%) var(--my,0%),rgba(255,255,255,.13),transparent 60%)}
+.slide.active .card>*{animation:rise .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*80ms)}
+@keyframes rise{from{opacity:0;transform:translateY(40px) translateZ(-60px) rotateX(18deg)}}
+.num{position:absolute;top:.6rem;right:1.6rem;font-size:4.5rem;font-weight:900;color:transparent;background:linear-gradient(135deg,rgba(34,211,238,.6),rgba(139,92,246,.15));-webkit-background-clip:text;background-clip:text;pointer-events:none}
+.eye{display:inline-block;font-size:.65rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#22d3ee;padding:.45rem 1.1rem;border-radius:50px;background:rgba(14,165,233,.15);border:1px solid rgba(34,211,238,.5);margin-bottom:1rem;box-shadow:0 0 25px rgba(34,211,238,.3)}
+h1{font-size:clamp(2.4rem,5.2vw,4.8rem);font-weight:900;line-height:1.08;letter-spacing:.01em;margin-bottom:1rem}
+h2{font-size:clamp(1.9rem,3.2vw,3rem);font-weight:800;letter-spacing:.01em;margin-bottom:1.2rem;line-height:1.15}
+h2::after{content:'';display:block;width:5rem;height:5px;margin-top:.7rem;border-radius:3px;background:linear-gradient(90deg,#22d3ee,#8b5cf6);box-shadow:0 0 20px #22d3ee}
+.grad{background:linear-gradient(135deg,#22d3ee,#3b82f6,#8b5cf6,#ec4899,#22d3ee);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:gs 5s ease infinite}
+@keyframes gs{50%{background-position:100% 50%}}
+p,li{font-size:1.25rem;line-height:1.55;color:#cbd5e1}
+.lead{font-size:1.4rem;color:#e2e8f0;margin-bottom:1rem}
+b{color:#fff;font-weight:800}
+em{font-style:normal;font-weight:900;color:#c4b5fd}
+.g{position:relative;padding:1.1rem 1.4rem;border-radius:1.2rem;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(18px);box-shadow:0 14px 34px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s;overflow:hidden}
+.g::after{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);transform:skewX(-20deg);transition:left .9s}
+.g:hover{transform:translateY(-6px) scale(1.015);box-shadow:0 24px 50px rgba(0,0,0,.55),0 0 40px rgba(34,211,238,.3),inset 0 1px 0 rgba(255,255,255,.5)}
+.g:hover::after{left:130%}
+.col{display:flex;flex-direction:column;gap:.9rem;margin-top:1rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.lb{display:block;font-size:.7rem;font-weight:900;color:#22d3ee;letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem}
+.code{font-family:Consolas,'Courier New',monospace;font-size:1.3rem;color:#f1f5f9;font-weight:600}
+.code b{color:#f472b6}
+.note{margin-top:1rem;padding:1.1rem 1.4rem;border-radius:1.2rem;background:linear-gradient(135deg,rgba(14,165,233,.18),rgba(139,92,246,.12));border:1px solid rgba(34,211,238,.4);font-size:1.2rem;line-height:1.5;color:#e2e8f0}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin:.6rem 0}
+.chips span{padding:.45rem 1.1rem;border-radius:50px;font-weight:700;font-size:1.1rem;background:rgba(14,165,233,.16);border:1px solid rgba(14,165,233,.45);color:#a5f3fc}
+.chips.v span{background:rgba(139,92,246,.16);border-color:rgba(139,92,246,.5);color:#ddd6fe}
+.flips{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;margin-top:1rem}
+.fc{height:15rem;perspective:1100px;cursor:pointer}
+.fi{position:relative;width:100%;height:100%;transition:transform .8s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.fc.on .fi{transform:rotateY(180deg)}
+.ff,.fb{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:1.4rem;padding:1.1rem;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:1px solid rgba(255,255,255,.2);background:linear-gradient(135deg,rgba(30,41,59,.75),rgba(15,23,42,.55));backdrop-filter:blur(20px);box-shadow:0 20px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.25)}
+.ff h3{font-size:1.35rem;margin-bottom:.5rem}
+.ff p{font-size:1rem}
+.fb{transform:rotateY(180deg);background:linear-gradient(135deg,rgba(14,165,233,.3),rgba(139,92,246,.3));border-color:#ec4899}
+.fb h4{color:#22d3ee;font-size:1.1rem;margin-bottom:.5rem}
+.fb p{color:#fff;font-weight:600;font-style:italic;font-size:1.25rem}
+.hint{position:absolute;bottom:.7rem;font-size:.7rem;color:#94a3b8;animation:pl 2s infinite}
+@keyframes pl{50%{opacity:.4}}
+.cw{--s:300px;width:var(--s);height:var(--s);margin:2.4rem auto;perspective:1300px;touch-action:none;cursor:grab}
+.cw:active{cursor:grabbing}
+.cube{width:100%;height:100%;position:relative;transform-style:preserve-3d}
+.face{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:1rem;border-radius:14px;border:2px solid rgba(34,211,238,.7);background:linear-gradient(135deg,rgba(14,165,233,.22),rgba(139,92,246,.22));backdrop-filter:blur(8px);box-shadow:inset 0 0 60px rgba(14,165,233,.45),0 0 40px rgba(34,211,238,.35);font-size:.95rem;color:#e2e8f0;line-height:1.35}
+.face h5{font-size:1.25rem;margin-bottom:.5rem}
+.face code{font-family:Consolas,monospace;font-size:.85rem;color:#a5f3fc;margin-bottom:.4rem}
+.f1{transform:translateZ(calc(var(--s)/2))}.f2{transform:rotateY(90deg) translateZ(calc(var(--s)/2))}.f3{transform:rotateY(180deg) translateZ(calc(var(--s)/2))}
+.f4{transform:rotateY(-90deg) translateZ(calc(var(--s)/2))}.f5{transform:rotateX(90deg) translateZ(calc(var(--s)/2))}.f6{transform:rotateX(-90deg) translateZ(calc(var(--s)/2))}
+.err{display:flex;flex-direction:column;gap:.3rem;border-left:5px solid #ef4444;background:linear-gradient(135deg,rgba(239,68,68,.14),rgba(255,255,255,.02))}
+.bad{color:#fca5a5;font-weight:700;font-size:1.25rem;text-decoration:line-through;text-decoration-color:rgba(239,68,68,.6)}
+.ok{color:#86efac;font-weight:700;font-size:1.25rem}
+.err small{color:#94a3b8;font-size:.9rem}
+.q{cursor:pointer}
+.q .a{max-height:0;opacity:0;overflow:hidden;transition:max-height .6s,opacity .6s,margin .4s;color:#86efac;font-weight:700;font-size:1.15rem}
+.q.on .a{max-height:6rem;opacity:1;margin-top:.5rem}
+.q.on{border-color:#86efac;box-shadow:0 0 30px rgba(134,239,172,.3)}
+.btn{display:inline-flex;align-items:center;gap:.7rem;margin-top:1.2rem;padding:.9rem 1.8rem;border-radius:50px;font:800 1.05rem inherit;font-family:inherit;color:#67e8f9;cursor:pointer;background:linear-gradient(135deg,rgba(14,165,233,.18),rgba(139,92,246,.18));border:1.5px solid rgba(34,211,238,.55);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.25);transition:all .35s cubic-bezier(.2,.8,.2,1)}
+.btn:hover{transform:translateY(-4px) scale(1.05);color:#fff;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);box-shadow:0 20px 50px rgba(14,165,233,.55)}
+.star{color:#fbbf24;animation:ps 2s infinite}
+@keyframes ps{50%{transform:scale(1.3) rotate(15deg)}}
+.nav{position:fixed;bottom:20px;right:20px;display:flex;gap:12px;z-index:50}
+.nav button{width:3.6rem;height:3.6rem;border-radius:50%;background:rgba(15,23,42,.65);border:1.5px solid rgba(14,165,233,.55);color:#67e8f9;font-size:1.8rem;cursor:pointer;backdrop-filter:blur(16px);transition:all .3s;box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.25)}
+.nav button:hover{background:linear-gradient(135deg,#0ea5e9,#8b5cf6);color:#fff;transform:scale(1.12);box-shadow:0 0 40px rgba(14,165,233,.8)}
+.ov{position:fixed;inset:0;z-index:1000;background:rgba(2,6,23,.75);backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.4s}
+.ov.on{opacity:1;visibility:visible}
+.mod{max-width:640px;width:90%;padding:2.4rem 2rem;border-radius:2rem;text-align:center;background:linear-gradient(135deg,rgba(30,41,90,.85),rgba(2,6,23,.9));border:1px solid rgba(34,211,238,.5);box-shadow:0 50px 150px #000,inset 0 0 80px rgba(14,165,233,.25);transform:scale(.8) rotateX(20deg);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.ov.on .mod{transform:none}
+.au{display:flex;align-items:center;gap:1.1rem;padding:1rem 1.2rem;margin-top:.9rem;text-align:left;border-radius:1.2rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);transition:.3s}
+.au:hover{transform:translateX(8px);background:rgba(14,165,233,.15)}
+.av{width:3.6rem;height:3.6rem;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);box-shadow:0 0 30px rgba(14,165,233,.6)}
+.au h4{font-size:1.25rem}.au p{font-size:.95rem;color:#a5f3fc}
+.show{position:fixed;inset:0;z-index:2000;background:radial-gradient(ellipse at center,#0b1030,#020617);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .5s;overflow:hidden}
+.show.on{opacity:1;visibility:visible}
+.flash{position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 100px 50px #22d3ee,0 0 200px 100px #8b5cf6;opacity:0}
+.show.on .flash{animation:fe 1.5s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes fe{0%{width:0;height:0;opacity:1}30%{width:100vmax;height:100vmax;opacity:.8}100%{width:250vmax;height:250vmax;opacity:0}}
+.ring{position:absolute;top:50%;left:50%;border-radius:50%;border:3px solid;pointer-events:none}
+.r1{width:min(60vmin,450px);height:min(60vmin,450px);margin:calc(min(60vmin,450px)/-2) 0 0 calc(min(60vmin,450px)/-2);border-color:rgba(34,211,238,.8);box-shadow:0 0 50px #22d3ee,inset 0 0 50px #22d3ee;animation:sp 5s linear infinite,pr 2s infinite}
+.r2{width:min(90vmin,700px);height:min(90vmin,700px);margin:calc(min(90vmin,700px)/-2) 0 0 calc(min(90vmin,700px)/-2);border-color:rgba(139,92,246,.7);box-shadow:0 0 60px #8b5cf6,inset 0 0 60px #8b5cf6;animation:sp 8s linear infinite reverse,pr 2.5s infinite}
+@keyframes sp{to{transform:rotate(360deg)}}@keyframes pr{50%{opacity:.5}}
+.tc{position:relative;z-index:5;text-align:center}
+.t1{font-size:clamp(3rem,12vw,9rem);font-weight:900;display:flex;gap:.09em;justify-content:center;perspective:1000px}
+.t1 span{display:inline-block;opacity:0;transform:translateY(-150px) rotateX(90deg);background:linear-gradient(135deg,#fff,#22d3ee,#8b5cf6,#fff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ld 1s cubic-bezier(.2,.8,.2,1) forwards,gs 3s infinite}
+@keyframes ld{to{opacity:1;transform:none}}
+.t2{font-size:clamp(1.4rem,4.5vw,3.2rem);font-weight:900;letter-spacing:.3em;color:#fff;opacity:0;animation:ld 1s 1.2s forwards;text-shadow:0 0 40px #22d3ee}
+.x{position:absolute;top:24px;right:24px;width:3.4rem;height:3.4rem;border-radius:50%;border:1.5px solid #22d3ee;background:rgba(255,255,255,.1);color:#fff;font-size:1.3rem;cursor:pointer;z-index:9}
+.pt{position:fixed;border-radius:50%;pointer-events:none;z-index:2500;animation:pf 2s cubic-bezier(.1,.8,.2,1) forwards}
+@keyframes pf{to{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+.cf{position:fixed;top:-20px;z-index:2400;pointer-events:none;animation:cfall linear forwards}
+@keyframes cfall{to{transform:translateY(112vh) rotate(900deg);opacity:0}}
+body.lite .blobs,body.lite #bg{display:none}
+body.lite *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.lite .card,body.lite .g{box-shadow:none!important}
+body.lite .slide{transition:opacity .3s}
+@property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+.card::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;padding:2px;background:conic-gradient(from var(--ang),transparent 0 55%,#22d3ee,#8b5cf6,#ec4899,transparent);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;animation:ang 6s linear infinite}
+@keyframes ang{to{--ang:360deg}}
+#glow{position:fixed;left:50%;top:50%;width:460px;height:460px;margin:-230px 0 0 -230px;border-radius:50%;pointer-events:none;z-index:2;background:radial-gradient(circle,rgba(34,211,238,.18),rgba(139,92,246,.08) 45%,transparent 68%);transition:left .18s ease-out,top .18s ease-out}
+.orb{position:absolute;left:50%;top:50%;width:0;height:0;perspective:2400px;pointer-events:none}
+.orb div{position:absolute;left:0;top:0;transform-style:preserve-3d;animation:orb 18s linear infinite}
+.orb span{position:absolute;left:-4rem;top:-1.3rem;width:8rem;text-align:center;padding:.55rem 0;border-radius:50px;font-weight:800;font-size:1.15rem;color:#e0f2fe;background:rgba(34,211,238,.2);border:1px solid rgba(34,211,238,.7);box-shadow:0 0 30px rgba(34,211,238,.55);transform:rotateY(calc(var(--k)*60deg)) translateZ(27rem)}
+@keyframes orb{from{transform:rotateX(-14deg) rotateY(0)}to{transform:rotateX(-14deg) rotateY(360deg)}}
+.big{font-size:3.4rem;font-weight:900;line-height:1.1;margin-bottom:.3rem}
+body.lite .card::after,body.lite #glow,body.lite .orb{display:none}
+.grad{padding:0 .06em .12em}
+.sph{position:relative;height:min(38vh,18rem);margin-top:.6rem;touch-action:none;cursor:grab}
+.sph span{position:absolute;left:50%;top:50%;white-space:nowrap;padding:.35rem .95rem;border-radius:50px;font-weight:800;font-size:1.15rem;will-change:transform}
+.sph .s0{background:rgba(14,165,233,.22);border:1px solid rgba(34,211,238,.7);color:#e0f2fe;box-shadow:0 0 22px rgba(34,211,238,.5)}
+.sph .s1{background:rgba(139,92,246,.22);border:1px solid rgba(167,139,250,.7);color:#ede9fe;box-shadow:0 0 22px rgba(139,92,246,.5)}
+.iso{height:15rem;perspective:1500px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.stk{position:relative;width:min(26rem,80%);height:8rem;transform-style:preserve-3d;transform:rotateX(58deg) rotateZ(-32deg)}
+.stk i{position:absolute;inset:0;border-radius:1rem;border:2px solid;display:flex;align-items:center;justify-content:center;text-align:center;padding:.5rem;font-style:normal;font-weight:800;font-size:1.25rem;color:#fff;box-shadow:0 0 30px rgba(255,255,255,.12);transition:transform 1s cubic-bezier(.2,.8,.2,1);transform:translateZ(calc(var(--z)*1.1rem))}
+.iso.on .stk i{transform:translateZ(calc(var(--z)*5.5rem))}
+.card{background:linear-gradient(135deg,rgba(255,255,255,.15),rgba(60,70,150,.22) 40%,rgba(2,6,23,.45));border-color:rgba(255,255,255,.3);box-shadow:0 40px 100px rgba(0,0,0,.75),0 0 90px rgba(139,92,246,.25),inset 0 2px 2px rgba(255,255,255,.6),inset 0 -2px 10px rgba(34,211,238,.3),inset 0 0 60px rgba(255,255,255,.07)}
+.g{background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.04) 60%);border-color:rgba(255,255,255,.28);backdrop-filter:blur(22px) saturate(180%);box-shadow:0 16px 38px rgba(0,0,0,.45),inset 0 2px 1px rgba(255,255,255,.5),inset 0 -1px 8px rgba(139,92,246,.3)}
+.floor{position:fixed;left:-50%;right:-50%;bottom:0;height:50vh;z-index:1;pointer-events:none;opacity:.4;background:linear-gradient(rgba(34,211,238,.6) 1px,transparent 1px) 0 0/60px 60px,linear-gradient(90deg,rgba(139,92,246,.6) 1px,transparent 1px) 0 0/60px 60px;transform:perspective(500px) rotateX(62deg);transform-origin:bottom;animation:fl2 2.4s linear infinite;-webkit-mask:linear-gradient(transparent,#000 70%);mask:linear-gradient(transparent,#000 70%)}
+@keyframes fl2{to{background-position:0 60px,0 0}}
+.shapes{position:fixed;inset:0;z-index:2;pointer-events:none;transition:transform .3s ease-out}
+.shapes b{position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.6),rgba(255,255,255,.08) 22%,rgba(34,211,238,.14) 55%,rgba(139,92,246,.25));border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(6px);box-shadow:inset -12px -16px 40px rgba(139,92,246,.4),inset 10px 10px 30px rgba(255,255,255,.28),0 30px 60px rgba(0,0,0,.4);animation:bob 9s ease-in-out infinite;animation-delay:calc(var(--d)*-3s)}
+@keyframes bob{50%{transform:translateY(-32px) rotate(8deg)}}
+.car{height:16rem;perspective:1800px;touch-action:none;cursor:grab}
+.rg{position:relative;width:16rem;height:9rem;margin:3.5rem auto 0;transform-style:preserve-3d}
+.rg div{position:absolute;inset:0;padding:1rem;border-radius:1.2rem;display:flex;flex-direction:column;justify-content:center;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(calc(var(--k)*60deg)) translateZ(15rem);border:1px solid rgba(255,255,255,.4);background:linear-gradient(135deg,rgba(255,255,255,.24),rgba(255,255,255,.05));box-shadow:0 0 34px var(--c),inset 0 1px 1px rgba(255,255,255,.6)}
+.rg b{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--c);margin-bottom:.4rem}
+.rg span{font-size:1.05rem;color:#fff;font-weight:600;line-height:1.35}
+.gyro{width:8rem;height:8rem;margin:0 auto 1rem;position:relative;transform-style:preserve-3d;animation:gy 10s linear infinite}
+.gyro i{position:absolute;inset:0;border-radius:50%;border:3px solid;box-shadow:0 0 25px currentColor,inset 0 0 25px currentColor}
+.gyro i:nth-child(1){color:#22d3ee}.gyro i:nth-child(2){color:#8b5cf6;transform:rotateY(60deg)}.gyro i:nth-child(3){color:#ec4899;transform:rotateY(120deg)}
+@keyframes gy{to{transform:rotateX(360deg) rotateY(360deg)}}
+body.lite .floor,body.lite .shapes{display:none}
+#intro{position:fixed;inset:0;z-index:5000;background:radial-gradient(ellipse at center,#0b1030,#02040a);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center;transition:opacity .9s,visibility .9s}
+#intro.off{opacity:0;visibility:hidden}
+#intro .t{font-size:clamp(3.5rem,10vw,7rem);font-weight:900;letter-spacing:.12em;line-height:1}
+#intro p{letter-spacing:.3em;text-transform:uppercase;font-size:.9rem;color:#94a3b8}
+.ib{width:14rem;height:4px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:.8rem}
+.ib b{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#8b5cf6,#ec4899);animation:ib 1.7s ease forwards}
+@keyframes ib{to{width:100%}}
+.dots{position:fixed;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:50}
+.dots i{position:relative;width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.28);cursor:pointer;transition:.3s}
+.dots i::after{content:'';position:absolute;inset:-7px}
+.dots i.on{background:#22d3ee;box-shadow:0 0 14px #22d3ee;transform:scale(1.5)}
+.g::before{content:'';position:absolute;inset:0;background:radial-gradient(240px circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.24),transparent 60%);pointer-events:none;opacity:0;transition:opacity .3s}
+.g:hover::before{opacity:1}
+body.lite .dots,body.lite #intro .gyro{animation:none}
+@media(max-width:800px){.dots{display:none}}
+@media(max-width:800px){.orb{display:none}}
+@media(max-width:800px){.card{padding:1.6rem 1.1rem}.two,.flips{grid-template-columns:1fr}.fc{height:12rem}.cw{--s:230px}.num{font-size:3rem}html{font-size:16px}}
+</style>
+</head>
+<body>
+<div id="intro"><div style="perspective:900px"><div class="gyro" style="margin:0 auto"><i></i><i></i><i></i></div></div><div class="t grad">СПП</div><p>Сложноподчинённые предложения</p><div class="ib"><b></b></div></div>
+<canvas id="bg"></canvas>
+<div id="glow"></div>
+<div class="floor"></div>
+<div class="shapes"><b style="--x:5%;--y:58%;--s:9rem;--d:0"></b><b style="--x:88%;--y:10%;--s:6rem;--d:1"></b><b style="--x:80%;--y:62%;--s:11rem;--d:2"></b><b style="--x:12%;--y:8%;--s:4.5rem;--d:3"></b><b style="--x:46%;--y:84%;--s:5rem;--d:4"></b></div>
+<div class="blobs"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="prog"><div id="bar"></div></div>
+<div class="counter" id="cnt">01 / 15</div>
+<div class="tools"><button id="fs" title="Во весь экран (F)">⛶</button><button id="lt" title="Лёгкий режим (L)">⚡</button></div>
+
+<main class="deck">
+<section class="slide active"><div class="orb"><div><span style="--k:0">что</span><span style="--k:1">когда</span><span style="--k:2">если</span><span style="--k:3">который</span><span style="--k:4">чтобы</span><span style="--k:5">потому что</span></div></div><div class="card">
+  <div class="num">01</div>
+  <div class="eye">Защита проекта · Синтаксис русского языка</div>
+  <h1>Сложноподчинённые<br><span class="grad">предложения</span></h1>
+  <p class="lead">9 класс · интерактивный 3D-урок</p>
+  <div class="note">Листай стрелками ← → или свайпом. Карточки и куб — трогай!</div>
+  <button class="btn" data-fact="СПП — самый «богатый» тип сложных предложений: с его помощью мы выражаем причину, цель, условие, время и уступку."><span class="star">✦</span>Интересный факт</button>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">02</div>
+  <span class="eye">Определение</span>
+  <h2>Что такое <span class="grad">СПП</span>?</h2>
+  <p class="lead">Сложное предложение, части которого связаны <b>подчинительными союзами</b> или <b>союзными словами</b>. Одна часть — <b>главная</b>, другая — <b>придаточная</b>.</p>
+  <div class="two"><div class="g"><span class="lb">Схема</span><span class="code">[ главная ] → ( придаточная )</span></div>
+  <div class="g"><span class="lb">Пример</span><span class="code">Я знаю, <b>что</b> скоро придёт лето.</span></div></div>
+  <div class="note"><em>Главный признак:</em> от главной части к придаточной можно задать вопрос. По нему определяют тип придаточного.</div>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">03</div>
+  <span class="eye">Классификация</span>
+  <h2>Три типа <span class="grad">придаточных</span></h2>
+  <p style="font-size:1rem;color:#94a3b8">Нажми на карточку — она перевернётся 👇</p>
+  <div class="flips">
+    <div class="fc"><div class="fi"><div class="ff" style="border-top:4px solid #22d3ee"><h3>Определительные</h3><p>Вопрос: <b>какой?</b><br>Относятся к существительному.<br>Слова: <b>который, чей, где</b></p><div class="hint">нажми</div></div><div class="fb"><h4>Пример</h4><p>Книга, <b>которую</b> я читаю, интересна.</p></div></div></div>
+    <div class="fc"><div class="fi"><div class="ff" style="border-top:4px solid #8b5cf6"><h3>Изъяснительные</h3><p>Вопросы падежей.<br>Относятся к глаголам речи и мысли.<br>Союзы: <b>что, чтобы, как</b></p><div class="hint">нажми</div></div><div class="fb"><h4>Пример</h4><p>Я думаю, <b>что</b> ты прав.</p></div></div></div>
+    <div class="fc"><div class="fi"><div class="ff" style="border-top:4px solid #ec4899"><h3>Обстоятельственные</h3><p>Вопросы: <b>где? когда? почему?</b><br>Союзы: <b>когда, если, потому что</b></p><div class="hint">нажми</div></div><div class="fb"><h4>Пример</h4><p>Мы пошли домой, <b>когда</b> стемнело.</p></div></div></div>
+  </div>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">04</div>
+  <span class="eye">Средства связи</span>
+  <h2>Союзы и <span class="grad">союзные слова</span></h2>
+  <div class="two">
+    <div class="g"><span class="lb">Подчинительные союзы</span><div class="chips"><span>что</span><span>чтобы</span><span>если</span><span>когда</span><span>потому что</span></div><p style="font-size:1.05rem">Только связывают части. <b>Не являются</b> членами предложения.</p></div>
+    <div class="g"><span class="lb" style="color:#a78bfa">Союзные слова</span><div class="chips v"><span>который</span><span>чей</span><span>какой</span><span>где</span><span>куда</span></div><p style="font-size:1.05rem"><b>Являются</b> членами предложения (подлежащее, обстоятельство…).</p></div>
+  </div>
+  <div class="note"><em>Подсказка:</em> союзное слово можно заменить на «который» (<i>где → в котором</i>), а союз — нельзя.</div>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">05</div>
+  <span class="eye">Пунктуация</span>
+  <h2>Где ставить <span class="grad">запятую</span>?</h2>
+  <p class="lead">Между главной и придаточной частью — <b>всегда запятая</b>.</p>
+  <div class="col">
+    <div class="g"><span class="lb">Составной союз</span><span class="code">Мы ушли, <b>потому что</b> стемнело.</span></div>
+    <div class="g"><span class="lb">Расщепление союза</span><span class="code">Мы ушли именно <b>потому, что</b> стемнело.</span></div>
+    <div class="g"><span class="lb">Однородные придаточные</span><span class="code">Я знал, что он придёт <b>и</b> что всё будет хорошо.</span></div>
+  </div>
+  <div class="note"><em>Важно:</em> «потому, что» пишем, если на «потому» падает логическое ударение. Перед «и» между однородными придаточными запятая не нужна.</div>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">06</div>
+  <span class="eye">Структура</span>
+  <h2>Позиции <span class="grad">придаточной части</span></h2>
+  <div class="col">
+    <div class="g"><span class="lb">Препозиция — до главной</span><span class="code">( Когда наступил вечер ), [ мы пошли домой ].</span></div>
+    <div class="g"><span class="lb">Интерпозиция — внутри</span><span class="code">[ Дом, ( который построил Джек ), стоит на холме ].</span></div>
+    <div class="g"><span class="lb">Постпозиция — после главной</span><span class="code">[ Мы вернулись ], ( когда стемнело ).</span></div>
+  </div>
+</div></section>
+
+<section class="slide"><div class="card" style="text-align:center">
+  <div class="num">07</div>
+  <span class="eye">Виды подчинения</span>
+  <h2 style="text-align:center">Когда придаточных <span class="grad">несколько</span></h2>
+  <p style="font-size:1rem;color:#94a3b8">Крути куб пальцем или мышкой 👇</p>
+  <div class="cw" id="cw"><div class="cube" id="cube">
+    <div class="face f1"><h5 style="color:#22d3ee">Последовательное</h5><code>[…] → (что… → (когда…))</code>Каждое следующее придаточное подчиняется предыдущему. «Матрёшка».</div>
+    <div class="face f2"><h5 style="color:#a78bfa">Однородное</h5><code>[…] → (что…), (что…)</code>Одного типа, отвечают на один вопрос, зависят от одного слова.</div>
+    <div class="face f3"><h5 style="color:#f472b6">Параллельное</h5><code>[…] → (когда…), (что…)</code>Разных типов, но обе зависят от одной главной части.</div>
+    <div class="face f4"><h5 style="color:#fbbf24">Совет</h5>Чтобы найти границы, задавай вопросы от главной части к зависимым.</div>
+    <div class="face f5"><h5 style="color:#67e8f9">Запомни</h5>Одна главная часть может иметь несколько придаточных.</div>
+    <div class="face f6"><h5 style="color:#86efac">Схема</h5>Рисуй стрелки от главной к придаточным!</div>
+  </div></div>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">08</div>
+  <span class="eye">Разбор</span>
+  <h2>Разбираем <span class="grad">пример</span></h2>
+  <div class="note" style="font-size:1.5rem"><em>Когда</em> солнце село, мы вернулись домой, <em>потому что</em> стало холодно.</div>
+  <div class="col">
+    <div class="g"><span class="lb">① Время (когда?)</span><span class="code">( Когда солнце село )</span></div>
+    <div class="g"><span class="lb">② Главная</span><span class="code">[ мы вернулись домой ]</span></div>
+    <div class="g"><span class="lb">③ Причина (почему?)</span><span class="code">( потому что стало холодно )</span></div>
+  </div>
+  <p style="margin-top:1rem">Тип подчинения: <b>параллельное</b> — два придаточных разных видов зависят от одной главной части.</p>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">09</div>
+  <span class="eye">Ошибки</span>
+  <h2>Частые <span class="grad">ошибки</span></h2>
+  <div class="col">
+    <div class="g err"><span class="bad">Он сказал что придёт.</span><span class="ok">Он сказал, что придёт.</span><small>Перед союзом «что» запятая обязательна.</small></div>
+    <div class="g err"><span class="bad">Я не знаю куда идти.</span><span class="ok">Я не знаю, куда идти.</span><small>Перед союзным словом тоже нужна запятая.</small></div>
+    <div class="g err"><span class="bad">Книга которую я читаю интересна.</span><span class="ok">Книга, которую я читаю, интересна.</span><small>Придаточная внутри главной выделяется запятыми с двух сторон.</small></div>
+  </div>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">10</div>
+  <span class="eye">Практика</span>
+  <h2>Определи <span class="grad">тип придаточного</span></h2>
+  <p style="font-size:1rem;color:#94a3b8">Подумай, затем нажми — появится ответ 👇</p>
+  <div class="two">
+    <div class="g q"><span class="code">Я уверен, что мы победим.</span><div class="a">Изъяснительное (в чём?)</div></div>
+    <div class="g q"><span class="code">Дом, где я родился, снесли.</span><div class="a">Определительное (какой дом?)</div></div>
+    <div class="g q"><span class="code">Если будет дождь, мы останемся дома.</span><div class="a">Обстоятельственное условия</div></div>
+    <div class="g q"><span class="code">Мы пошли гулять, хотя шёл дождь.</span><div class="a">Обстоятельственное уступки</div></div>
+  </div>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">11</div>
+  <span class="eye">Облако связей</span>
+  <h2>Сфера <span class="grad">связей</span></h2>
+  <div class="chips"><span>союзы</span><span style="background:rgba(139,92,246,.16);border-color:rgba(139,92,246,.5);color:#ddd6fe">союзные слова</span></div>
+  <div class="sph" id="sph"></div>
+  <p style="font-size:1rem;color:#94a3b8;text-align:center">Крути сферу пальцем или мышкой 👆</p>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">12</div>
+  <span class="eye">Схема в 3D</span>
+  <h2>Слои <span class="grad">предложения</span></h2>
+  <p style="font-size:1rem;color:#94a3b8">Нажми на схему — слои раздвинутся 👇</p>
+  <div class="iso" onclick="this.classList.toggle('on')"><div class="stk">
+    <i style="--z:0;border-color:#ec4899;background:rgba(236,72,153,.28)">( потому что стало холодно )</i>
+    <i style="--z:1;border-color:#22d3ee;background:rgba(14,165,233,.3)">[ мы вернулись домой ]</i>
+    <i style="--z:2;border-color:#8b5cf6;background:rgba(139,92,246,.3)">( Когда солнце село )</i>
+  </div></div>
+  <div class="note"><em>Главная часть</em> — в центре. Обе придаточные зависят от неё: одна отвечает на вопрос «когда?», другая — «почему?».</div>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">13</div>
+  <span class="eye">Галерея</span>
+  <h2>Примеры в <span class="grad">3D-карусели</span></h2>
+  <div class="car" id="car"><div class="rg" id="rg">
+    <div style="--k:0;--c:#22d3ee"><b>Определительное</b><span>Город, где я вырос, сильно изменился.</span></div>
+    <div style="--k:1;--c:#a78bfa"><b>Изъяснительное</b><span>Мама сказала, что скоро будет дождь.</span></div>
+    <div style="--k:2;--c:#f472b6"><b>Времени</b><span>Когда зазвенел звонок, урок закончился.</span></div>
+    <div style="--k:3;--c:#fbbf24"><b>Причины</b><span>Он опоздал, потому что сломался автобус.</span></div>
+    <div style="--k:4;--c:#86efac"><b>Цели</b><span>Я пришёл, чтобы помочь тебе.</span></div>
+    <div style="--k:5;--c:#67e8f9"><b>Условия</b><span>Если ты захочешь, мы пойдём в кино.</span></div>
+  </div></div>
+  <p style="font-size:1rem;color:#94a3b8;text-align:center">Крути карусель и определяй тип придаточного 👆</p>
+</div></section>
+
+<section class="slide"><div class="card">
+  <div class="num">14</div>
+  <span class="eye">О проекте</span>
+  <h2>Как это <span class="grad">сделано</span></h2>
+  <div class="two" style="grid-template-columns:repeat(3,1fr)">
+    <div class="g" style="text-align:center"><div class="big grad" data-n="15">0</div><p style="font-size:1.05rem">интерактивных слайдов</p></div>
+    <div class="g" style="text-align:center"><div class="big grad" data-n="170">0</div><p style="font-size:1.05rem">звёзд в 3D-пространстве</p></div>
+    <div class="g" style="text-align:center"><div class="big grad" data-n="0">0</div><p style="font-size:1.05rem">внешних библиотек</p></div>
+  </div>
+  <div class="chips" style="margin-top:1.2rem"><span>HTML5</span><span>CSS 3D Transforms</span><span>Canvas 2D</span><span>JavaScript</span><span>Glassmorphism</span><span>Адаптивность</span></div>
+  <div class="note"><em>Вся логика</em> написана вручную: 3D-куб, переворот карточек, звёздное поле, шоу с частицами и режим для слабых экранов.</div>
+</div></section>
+
+<section class="slide"><div class="card" style="text-align:center">
+  <div class="num">15</div>
+  <div style="perspective:900px"><div class="gyro"><i></i><i></i><i></i></div></div><div class="eye">Финал</div>
+  <h2 style="text-align:center">Спасибо, что <span class="grad">дошли до конца</span></h2>
+  <p class="lead" style="max-width:640px;margin:0 auto">Мы разобрали всё: от определения СПП до видов подчинения и частых ошибок.</p>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.4rem">
+    <button class="btn" id="aBtn"><span>👥</span>Авторы проекта</button>
+    <button class="btn" id="tBtn" style="border-color:#ec4899"><span class="star">✨</span>Запустить 3D-шоу</button>
+  </div>
+</div></section>
+</main>
+
+<div class="dots"></div>
+<nav class="nav"><button id="pv">‹</button><button id="nx">›</button></nav>
+
+<div class="ov" id="fo"><div class="mod"><div style="font-size:3rem;color:#22d3ee">✦</div><h3 style="color:#22d3ee;letter-spacing:3px;margin:.6rem 0">Интересный факт</h3><p id="ft"></p><button class="btn" id="fc">Закрыть</button></div></div>
+<div class="ov" id="ao"><div class="mod"><div class="eye">Над проектом работали</div><h3 style="font-size:2rem">Авторы</h3>
+  <div class="au"><div class="av">АК</div><div><h4>Артем Король</h4><p>Идея, структура, теория</p></div></div>
+  <div class="au"><div class="av" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">ГП</div><div><h4>Гриша Плебей</h4><p>Дизайн, 3D-анимации, вёрстка</p></div></div>
+  <button class="btn" id="ac">Закрыть</button></div></div>
+<div class="show" id="sh"><div class="flash"></div><div class="ring r1"></div><div class="ring r2"></div><button class="x" id="sx">✕</button>
+  <div class="tc"><div class="t1" id="t1"></div><div class="t2">ЗА ВНИМАНИЕ</div></div></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s)},$$=function(s){return [].slice.call(document.querySelectorAll(s))};
+
+/* ===== 3D-звёздное поле ===== */
+var cv=$('#bg'),cx=cv.getContext('2d'),W,H,S=[],mx=0,my=0,lite=false,warp=0,frames=0,t0=performance.now();
+function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+addEventListener('resize',rs);rs();
+for(var i=0;i<170;i++)S.push({x:Math.random()*2-1,y:Math.random()*2-1,z:Math.random(),c:i%3});
+var COL=['34,211,238','139,92,246','236,72,153'];
+/* ===== куб ===== */
+var cube=$('#cube'),cw=$('#cw'),rx=-20,ry=0,drag=false,lx=0,ly=0;
+cw.addEventListener('pointerdown',function(e){drag=true;lx=e.clientX;ly=e.clientY;cw.setPointerCapture(e.pointerId)});
+cw.addEventListener('pointermove',function(e){if(!drag)return;ry+=(e.clientX-lx)*.6;rx=Math.max(-85,Math.min(85,rx-(e.clientY-ly)*.6));lx=e.clientX;ly=e.clientY});
+['pointerup','pointercancel'].forEach(function(n){cw.addEventListener(n,function(){drag=false})});
+
+function loop(){
+  if(!drag)ry+=.35;
+  cube.style.transform='rotateX('+rx+'deg) rotateY('+ry+'deg)';sph();car();
+  if(!lite){
+    cx.clearRect(0,0,W,H);warp*=.94;
+    for(var i=0;i<S.length;i++){var s=S[i];s.z-=.004*(1+warp);
+      if(s.z<=.02){s.z=1;s.x=Math.random()*2-1;s.y=Math.random()*2-1}
+      var k=.3/s.z,px=W/2+s.x*W/2*k+mx*(1-s.z)*80,py=H/2+s.y*H/2*k+my*(1-s.z)*80,r=(1-s.z)*3+.4;
+      cx.fillStyle='rgba('+COL[s.c]+','+(1-s.z)+')';cx.shadowBlur=8;cx.shadowColor='rgb('+COL[s.c]+')';
+      cx.beginPath();cx.arc(px,py,r,0,6.283);cx.fill();}
+    cx.shadowBlur=0;
+  }
+  /* авто-лёгкий режим на слабых досках */
+  if(frames<90){frames++;if(frames===90&&(performance.now()-t0)/90>38)setLite(true)}
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* ===== наклон карточки + блик ===== */
+document.addEventListener('pointermove',function(e){
+  mx=e.clientX/W-.5;my=e.clientY/H-.5;
+  if(lite||innerWidth<800||drag)return;
+  var c=$('.slide.active .card');if(!c)return;
+  c.style.transform='perspective(1600px) rotateY('+(mx*9)+'deg) rotateX('+(-my*9)+'deg)';
+  c.style.setProperty('--mx',(mx+.5)*100+'%');c.style.setProperty('--my',(my+.5)*100+'%');
+});
+
+/* ===== слайды ===== */
+var sl=$$('.slide'),cur=0,N=sl.length;
+$$('.card').forEach(function(c){[].slice.call(c.children).forEach(function(ch,i){ch.style.setProperty('--i',i)})});
+function go(n){
+  if(n===cur||n<0||n>=N)return;
+  sl[cur].querySelector('.card').style.transform='';
+  cur=n;
+  sl.forEach(function(s,i){s.classList.toggle('active',i===cur);s.classList.toggle('prev',i<cur)});
+  $('#bar').style.width=((cur+1)/N*100)+'%';countUp();warp=14;$$('.dots i').forEach(function(d,i){d.classList.toggle('on',i===cur)});
+  $('#cnt').textContent=String(cur+1).padStart(2,'0')+' / '+String(N).padStart(2,'0');
+}
+sl.forEach(function(s,i){if(i>0)s.classList.remove('prev')});
+$('#nx').onclick=function(){go(cur+1)};$('#pv').onclick=function(){go(cur-1)};
+function setLite(v){lite=v;document.body.classList.toggle('lite',v)}
+function fs(){var d=document;if(d.fullscreenElement){d.exitFullscreen()}else if(d.documentElement.requestFullscreen){d.documentElement.requestFullscreen().catch(function(){})}}
+$('#fs').onclick=fs;$('#lt').onclick=function(){setLite(!lite)};
+document.addEventListener('keydown',function(e){
+  var k=e.key;
+  if(k==='ArrowRight'||k==='PageDown'||k===' '){e.preventDefault();go(cur+1)}
+  else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(cur-1)}
+  else if(k==='Home')go(0);else if(k==='End')go(N-1);
+  else if(k==='f'||k==='F'||k==='а'||k==='А')fs();
+  else if(k==='l'||k==='L'||k==='д'||k==='Д')setLite(!lite);
+  else if(k==='Escape'){$$('.ov').forEach(function(o){o.classList.remove('on')});$('#sh').classList.remove('on')}
+});
+var tx=0,ok=true;
+document.addEventListener('touchstart',function(e){ok=!e.target.closest('.cw,.sph,.car');tx=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',function(e){if(!ok)return;var d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>70)go(d<0?cur+1:cur-1)},{passive:true});
+
+/* ===== карточки и практика ===== */
+$$('.fc').forEach(function(c){c.onclick=function(){c.classList.toggle('on')}});
+$$('.q').forEach(function(c){c.onclick=function(){c.classList.toggle('on')}});
+
+/* ===== модалки ===== */
+function ov(id,btn,close){var o=$(id);$(close).onclick=function(){o.classList.remove('on')};o.onclick=function(e){if(e.target===o)o.classList.remove('on')};return o}
+var fo=ov('#fo',null,'#fc'),ao=ov('#ao',null,'#ac');
+$$('[data-fact]').forEach(function(b){b.onclick=function(){$('#ft').textContent=b.dataset.fact;fo.classList.add('on')}});
+$('#aBtn').onclick=function(){ao.classList.add('on')};
+
+/* ===== эффекты ===== */
+function countUp(){$$('.slide.active [data-n]').forEach(function(el){var n=+el.dataset.n,t=performance.now();(function f(now){var p=Math.min(1,(now-t)/1600);el.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t)})}
+var sphEls=null,sphBox=null,ax=.3,ay=0,sd=false,sx=0,sy=0,PT=[];
+function initSph(){
+  sphBox=$('#sph');
+  var L=[['что',0],['чтобы',0],['если',0],['когда',0],['потому что',0],['хотя',0],['так как',0],['как',0],['пока',0],['будто',0],['словно',0],['после того как',0],['который',1],['чей',1],['какой',1],['где',1],['куда',1],['откуда',1],['кто',1],['почему',1],['сколько',1],['зачем',1]];
+  sphEls=L.map(function(w,i){var n=L.length,y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),a=i*2.39996;PT.push([Math.cos(a)*r,y,Math.sin(a)*r]);var s=document.createElement('span');s.className='s'+w[1];s.textContent=w[0];sphBox.appendChild(s);return s});
+  sphBox.addEventListener('pointerdown',function(e){sd=true;sx=e.clientX;sy=e.clientY;sphBox.setPointerCapture(e.pointerId)});
+  sphBox.addEventListener('pointermove',function(e){if(!sd)return;ay+=(e.clientX-sx)*.008;ax+=(e.clientY-sy)*.008;sx=e.clientX;sy=e.clientY});
+  ['pointerup','pointercancel'].forEach(function(n){sphBox.addEventListener(n,function(){sd=false})});
+}
+function sph(){
+  if(!sphEls||sl[cur]!==sphBox.closest('.slide'))return;
+  if(!sd)ay+=.006;
+  var R=Math.min(sphBox.clientWidth/2.3,sphBox.clientHeight/2.1),kx=Math.min(1.7,sphBox.clientWidth/2/R*.8),ca=Math.cos(ay),sa=Math.sin(ay),c2=Math.cos(ax),s2=Math.sin(ax);
+  for(var i=0;i<sphEls.length;i++){
+    var p=PT[i],x1=p[0]*ca+p[2]*sa,z1=-p[0]*sa+p[2]*ca,y2=p[1]*c2-z1*s2,z2=p[1]*s2+z1*c2,d=(z2+1)/2,e=sphEls[i].style;
+    e.transform='translate(-50%,-50%) translate('+(x1*R*kx)+'px,'+(y2*R)+'px) scale('+(.55+.6*d)+')';
+    e.opacity=.25+.75*d;e.zIndex=Math.round(d*100);
+  }
+}
+initSph();
+var rg=$('#rg'),cb=$('#car'),cry=0,cd=false,cl=0;
+cb.addEventListener('pointerdown',function(e){cd=true;cl=e.clientX;cb.setPointerCapture(e.pointerId)});
+cb.addEventListener('pointermove',function(e){if(cd){cry+=(e.clientX-cl)*.5;cl=e.clientX}});
+['pointerup','pointercancel'].forEach(function(n){cb.addEventListener(n,function(){cd=false})});
+function car(){if(!rg)return;if(!cd)cry+=.2;rg.style.transform='rotateY('+cry+'deg)'}
+var dots=$('.dots');
+sl.forEach(function(s,i){var d=document.createElement('i');d.onclick=function(){go(i)};dots.appendChild(d)});
+dots.firstChild.classList.add('on');
+if(!document.documentElement.requestFullscreen)$('#fs').style.display='none';
+setTimeout(function(){$('#intro').classList.add('off');if(cur===0){sl[0].classList.remove('active');void sl[0].offsetWidth;sl[0].classList.add('active')}},1900);
+document.addEventListener('pointermove',function(e){
+  if(lite||e.pointerType==='touch')return;
+  var g=e.target.closest&&e.target.closest('.g');if(!g)return;
+  var r=g.getBoundingClientRect(),px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+  g.style.transform='perspective(900px) rotateX('+((.5-py)*10)+'deg) rotateY('+((px-.5)*12)+'deg) translateY(-6px) scale(1.015)';
+  g.style.setProperty('--gx',px*100+'%');g.style.setProperty('--gy',py*100+'%');
+});
+document.addEventListener('pointerout',function(e){var g=e.target.closest&&e.target.closest('.g');if(g&&!g.contains(e.relatedTarget))g.style.transform=''});
+var gl=$('#glow');
+document.addEventListener('pointermove',function(e){gl.style.left=e.clientX+'px';gl.style.top=e.clientY+'px';var sh=$('.shapes');if(sh)sh.style.transform='translate('+(-mx*50)+'px,'+(-my*50)+'px)'});
+document.addEventListener('click',function(e){if(!lite&&!e.target.closest('.ov,.show,.nav,.tools'))burst(e.clientX,e.clientY,14,150)});
+/* ===== 3D-шоу ===== */
+var COLS=['#22d3ee','#8b5cf6','#ec4899','#ffffff','#3b82f6','#fbbf24'];
+function burst(x,y,n,max){
+  for(var i=0;i<n;i++){
+    var p=document.createElement('div'),c=COLS[i%COLS.length],a=Math.random()*6.283,d=100+Math.random()*max,s=4+Math.random()*12;
+    p.className='pt';p.style.cssText='left:'+x+'px;top:'+y+'px;width:'+s+'px;height:'+s+'px;background:'+c+';box-shadow:0 0 20px '+c;
+    p.style.setProperty('--tx',Math.cos(a)*d+'px');p.style.setProperty('--ty',Math.sin(a)*d+'px');
+    document.body.appendChild(p);setTimeout(function(q){q.remove()},2000,p);
+  }
+}
+function confetti(n){
+  for(var i=0;i<n;i++)setTimeout(function(){
+    var c=document.createElement('div'),d=2.5+Math.random()*2.5;
+    c.className='cf';c.style.cssText='left:'+Math.random()*100+'vw;width:'+(8+Math.random()*10)+'px;height:'+(8+Math.random()*14)+'px;background:'+COLS[Math.floor(Math.random()*6)]+';animation-duration:'+d+'s';
+    document.body.appendChild(c);setTimeout(function(){c.remove()},(d+.5)*1000);
+  },i*20);
+}
+$('#tBtn').onclick=function(e){
+  e.stopPropagation();
+  var t=$('#t1');t.innerHTML='';
+  'СПАСИБО'.split('').forEach(function(ch,k){var s=document.createElement('span');s.textContent=ch;s.style.animationDelay=(.3+k*.1)+'s,0s';t.appendChild(s)});
+  $('#sh').classList.add('on');
+  confetti(140);setTimeout(function(){confetti(90)},900);
+  setTimeout(function(){burst(innerWidth/2,innerHeight/2,150,600)},100);
+  setTimeout(function(){burst(innerWidth*.3,innerHeight*.4,50,350)},700);
+  setTimeout(function(){burst(innerWidth*.7,innerHeight*.5,50,350)},1300);
+};
+$('#sx').onclick=function(){$('#sh').classList.remove('on')};
+})();
+</script>
+</body>
+</html>
